@@ -1,3 +1,5 @@
+import subprocess
+subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
 import os
 from faster_whisper import WhisperModel
 import tempfile
