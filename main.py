@@ -29,7 +29,7 @@ if "selected_profile" not in st.session_state:
 # Sidebar for navigation
 page = st.sidebar.selectbox(
     "Choose a page",
-    ["Profile Analysis", "Video Analysis", "Chat"]
+    ["Profile Analysis", "Audio Analysis", "Chat"]
 )
 
 # Profile selection in sidebar
@@ -51,8 +51,8 @@ else:
 def main():
     if page == "Profile Analysis":
         show_profile_analysis()
-    elif page == "Video Analysis":
-        show_video_analysis()
+    elif page == "Audio Analysis":
+        show_audio_analysis()
     else:
         show_chat_assistant()
 
@@ -113,8 +113,8 @@ def show_profile_analysis():
         else:
             st.error("Please enter both first and last name")
 
-def show_video_analysis():
-    st.header("Video Analysis")
+def show_audio_analysis():
+    st.header("Audio Analysis")
     
     # Get all profiles
     profiles = get_all_profiles()

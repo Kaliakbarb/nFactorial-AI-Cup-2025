@@ -1,76 +1,60 @@
-# PersonaAnalyst 🔍
+# PersonaAnalyst 🧠
 
-An AI-powered tool for analyzing people's profiles and generating insights for better communication.
+**PersonaAnalyst** — мультимодальный AI-агент, который анализирует публичную информацию и поведение человека (включая аудио из встреч), чтобы помочь понять, как с ним лучше взаимодействовать. Особенно полезен для переговоров, HR, делового общения и сетевого нетворкинга.
 
-## Features
+---
 
-- **Profile Analysis**: Search and analyze public information about a person
-- **Video Analysis**: Process video recordings to extract insights
-- **Chat Interface**: Ask questions about how to interact with the person
+## 🚀 Функциональность
 
-## Setup
+- 🔍 **Анализ профиля** по имени и фамилии (через SerpAPI)
+- 🧠 **LLM-репорт** о личности: манера общения, предпочтения, советы по взаимодействию (с использованием Gemini или OpenAI GPT-4)
+- 🎙️ **Анализ аудиозаписей (.mp4)**: извлечение аудио, распознавание речи, определение спикеров, генерация итогов встречи
+- 🗣️ **Распознавание, кто из спикеров — пользователь** (вручную или через голосовое сравнение)
+- 💬 **Интерактивный чат**, где можно спросить:  
+  “Как вести переговоры с этим человеком?”
+- 💾 **Локальная база профилей** (JSON / SQLite)
 
-1. Clone the repository:
+---
+
+## 🧩 Архитектура
+
+### ✅ Используемый агентный паттерн:
+**Orchestrator-Workers + Autonomous Agent**
+
+- **Orchestrator** (`main.py`) координирует задачи между воркерами:
+  - `serpapi_handler.py` — поиск информации
+  - `llm_profile.py` — генерация отчёта
+  - `video_processor.py` — обработка аудио из .mp4
+  - `speaker_identifier.py` — распознавание "я"
+  - `chat_agent.py` — рекомендации по взаимодействию
+
+- **Autonomous Agent loop**: при добавлении новых данных профиль автоматически обновляется, и рекомендации адаптируются.
+
+---
+
+## 🌱 Anthropic Principles
+
+Проект следует принципам **этичного и безопасного ИИ**, в духе Anthropic:
+
+- ✅ **Прозрачность** — все действия и источники отображаются пользователю
+- ✅ **Контроль пользователя** — можно вручную подтвердить, кто ты на записи, и редактировать профиль
+- ✅ **Честность и осторожность** — ИИ сообщает, если не уверен в выводах
+- ✅ **Безопасность** — данные не передаются без разрешения, все остаётся локально
+
+---
+
+## 🧪 Как запустить локально (для тестов)
+
 ```bash
-git clone <repository-url>
-cd persona-analyst
-```
+git clone https://github.com/your-username/nFactorial-AI-Cup-2025.git
+cd nFactorial-AI-Cup-2025
 
-2. Create a virtual environment and activate it:
-```bash
+# Установка виртуального окружения
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-3. Install dependencies:
-```bash
+# Установка зависимостей
 pip install -r requirements.txt
-```
 
-4. Create a `.env` file with your API keys:
-```
-SERPAPI_API_KEY=your_serpapi_key
-GOOGLE_API_KEY=your_google_api_key
-```
-
-5. Run the application:
-```bash
-streamlit run main.py
-```
-
-## Project Structure
-
-- `main.py` - Main Streamlit application
-- `serpapi_handler.py` - SerpAPI integration for web search
-- `llm_profile.py` - Profile generation using Gemini API
-- `video_processor.py` - Video processing and transcription
-- `speaker_identifier.py` - Speaker identification
-- `chat_agent.py` - Chat interface for questions
-- `data/` - Directory for storing profiles and analysis results
-
-## Dependencies
-
-- Streamlit - Web interface
-- Google Generative AI - LLM for profile generation
-- SerpAPI - Web search
-- Whisper - Speech recognition
-- FFmpeg - Video processing
-- SQLAlchemy - Database ORM
-
-## Usage
-
-1. **Profile Analysis**
-   - Enter the person's first and last name
-   - Click "Analyze Profile" to generate insights
-
-2. **Video Analysis**
-   - Upload an MP4 video file
-   - The system will process the video and extract insights
-
-3. **Chat**
-   - Ask questions about how to interact with the person
-   - Get AI-powered recommendations based on the analysis
-
-## License
-
-MIT License 
+# Создание .env
+cp .env.example .env  # или создать вручную
