@@ -184,22 +184,20 @@ def get_all_profiles() -> List[Dict]:
 
 def get_profile_by_id(person_id: str) -> Dict:
     """
-    Get a specific profile by person ID.
+    Get profile by person ID.
     
     Args:
-        person_id (str): Person's unique identifier
+        person_id (str): Person ID
         
     Returns:
-        Dict: Profile data or empty dict if not found
+        Dict: Profile data
     """
-    filepath = os.path.join("data", "people", f"{person_id}_profile.json")
-    
-    if not os.path.exists(filepath):
-        return {}
-    
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
+        file_path = os.path.join("data", "people", f"{person_id}_profile.json")
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return {}
     except Exception as e:
         print(f"Error reading profile {person_id}: {str(e)}")
         return {}
@@ -226,6 +224,15 @@ def update_profile_with_audio(person_id: str, audio_insights: Dict) -> Dict:
         
         # Prepare context for profile update
         context = f"""
+        You are a precise JSON generator. Your task is to update a person's profile with new insights.
+        Follow these rules strictly:
+        1. Output ONLY valid JSON
+        2. Use double quotes for strings
+        3. Escape any special characters in strings
+        4. Do not include any text before or after the JSON
+        5. Ensure all arrays and objects are properly closed
+        6. Do not include any comments or explanations
+
         Current profile:
         {json.dumps(profile, indent=2)}
         
@@ -238,14 +245,29 @@ def update_profile_with_audio(person_id: str, audio_insights: Dict) -> Dict:
         3. Adding new key points to the profile
         4. Incorporating any new information while maintaining existing data
         
-        Return the complete updated profile as a JSON object.
+        The output must be a valid JSON object with the exact same structure as the current profile.
+        Keep all existing fields and their types, only update their values with new information.
         """
         
         # Generate updated profile
         response = model.generate_content(context)
         
+        # Clean the response text to ensure it's valid JSON
+        response_text = response.text.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
+        
         try:
-            updated_profile = json.loads(response.text)
+            updated_profile = json.loads(response_text)
+            
+            # Verify that the updated profile has all required fields
+            required_fields = ["person", "introduction", "interests", "communication_style", "communication_tips"]
+            for field in required_fields:
+                if field not in updated_profile:
+                    raise ValueError(f"Missing required field: {field}")
             
             # Save updated profile
             save_profile(
@@ -256,7 +278,9 @@ def update_profile_with_audio(person_id: str, audio_insights: Dict) -> Dict:
             
             return updated_profile
             
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {str(e)}")
+            print(f"Raw response: {response_text}")
             raise ValueError("Failed to parse updated profile from AI response")
             
     except Exception as e:

@@ -95,49 +95,103 @@ def analyze_audio_content(transcription: str) -> Dict:
         # Initialize Gemini model
         model = genai.GenerativeModel('gemini-2.0-flash')
         
-        # Create prompt for analysis
-        prompt = f"""
-        Analyze the following transcribed audio content and extract key insights:
+        # First, translate the content to English
+        translation_prompt = f"""
+        Translate the following text to English. Keep the original meaning and context intact:
         
         {transcription}
         
-        Provide a structured analysis including:
-        1. Main topics discussed
-        2. Communication style and patterns
-        3. Key points or important information
-        4. Emotional tone and sentiment
-        5. New interests or preferences mentioned
-        6. Any notable quotes or statements
+        Provide only the English translation, nothing else.
+        """
         
-        Format the response as a JSON object with the following structure:
+        translation_response = model.generate_content(translation_prompt)
+        english_transcription = translation_response.text.strip()
+        
+        # Now analyze the English translation
+        analysis_prompt = f"""
+        You are a precise JSON generator. Analyze this English text and create a valid JSON object.
+        Follow these rules strictly:
+        1. Output ONLY valid JSON
+        2. Use double quotes for strings
+        3. Escape any special characters in strings
+        4. Do not include any text before or after the JSON
+        5. Ensure all arrays and objects are properly closed
+        6. Do not include any comments or explanations
+
+        Text to analyze:
+        {english_transcription}
+        
+        Create a JSON object with this exact structure:
         {{
-            "topics": ["topic1", "topic2", ...],
-            "communication_style": "description of communication style",
-            "key_points": ["point1", "point2", ...],
-            "emotional_tone": "description of emotional tone",
-            "new_interests": ["interest1", "interest2", ...],
-            "notable_quotes": ["quote1", "quote2", ...]
+            "topics": ["topic1", "topic2"],
+            "communication_style": "style description",
+            "key_points": ["point1", "point2"],
+            "emotional_tone": "tone description",
+            "new_interests": ["interest1", "interest2"],
+            "notable_quotes": ["quote1", "quote2"]
         }}
+        
+        Rules for each field:
+        1. topics: List main subjects discussed
+        2. communication_style: Describe how the person communicates
+        3. key_points: List important information or takeaways
+        4. emotional_tone: Describe the overall emotional context
+        5. new_interests: List any interests or preferences mentioned
+        6. notable_quotes: List significant statements
+        
+        Output ONLY the JSON object, nothing else.
         """
         
         # Generate analysis
-        response = model.generate_content(prompt)
+        response = model.generate_content(analysis_prompt)
+        
+        # Clean the response text to ensure it's valid JSON
+        response_text = response.text.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
         
         # Parse the response as JSON
         try:
-            insights = json.loads(response.text)
+            insights = json.loads(response_text)
+            # Add transcriptions separately after successful JSON parsing
+            insights["language"] = "Russian"
+            insights["original_transcription"] = transcription
+            insights["english_transcription"] = english_transcription
             return insights
-        except json.JSONDecodeError:
-            # If JSON parsing fails, return a structured error
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {str(e)}")
+            print(f"Raw response: {response_text}")
+            # If JSON parsing fails, try to extract structured information from the text
             return {
-                "error": "Failed to parse AI response",
-                "raw_response": response.text
+                "error": "Failed to parse AI response as JSON",
+                "raw_response": response_text,
+                "topics": ["Error in parsing response"],
+                "communication_style": "Unable to analyze",
+                "key_points": ["Please try again"],
+                "emotional_tone": "Unable to analyze",
+                "new_interests": [],
+                "notable_quotes": [],
+                "language": "Russian",
+                "original_transcription": transcription,
+                "english_transcription": english_transcription
             }
             
     except Exception as e:
         print(f"Error analyzing audio content: {str(e)}")
         return {
-            "error": f"Error analyzing audio content: {str(e)}"
+            "error": f"Error analyzing audio content: {str(e)}",
+            "topics": ["Error in analysis"],
+            "communication_style": "Unable to analyze",
+            "key_points": ["Please try again"],
+            "emotional_tone": "Unable to analyze",
+            "new_interests": [],
+            "notable_quotes": [],
+            "language": "Russian",
+            "original_transcription": transcription,
+            "english_transcription": "Translation failed"
         }
 
 def save_transcription(transcription_data: Dict) -> str:

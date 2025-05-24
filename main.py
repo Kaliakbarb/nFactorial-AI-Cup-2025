@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 from serpapi_handler import search_person, get_social_profiles
-from llm_profile import generate_profile, save_profile, get_all_profiles, get_profile_by_id
+from llm_profile import generate_profile, save_profile, get_all_profiles, get_profile_by_id, update_profile_with_audio
 from video_processor import process_audio, get_transcriptions
 from chat_agent import get_chat_response
 # TODO: Implement these modules
@@ -190,25 +190,24 @@ def show_video_analysis():
                         for quote in insights["notable_quotes"]:
                             st.write(f"- {quote}")
                     
-                    # Option to update profile with insights
-                    if st.button("Update Profile with Audio Insights"):
-                        try:
-                            updated_profile = update_profile_with_audio(
-                                selected_profile['person']['id'],
-                                insights
-                            )
-                            st.success("Profile updated successfully!")
+                    # Automatically update profile with insights
+                    try:
+                        updated_profile = update_profile_with_audio(
+                            selected_profile['person']['id'],
+                            insights
+                        )
+                        st.success("Profile updated successfully with new insights!")
+                        
+                        # Show updated profile
+                        with st.expander("View Updated Profile"):
+                            st.write(f"**Introduction:** {updated_profile['introduction']}")
+                            st.write("**Interests:**")
+                            for interest in updated_profile['interests']:
+                                st.write(f"- {interest}")
+                            st.write(f"**Communication Style:** {updated_profile['communication_style']}")
                             
-                            # Show updated profile
-                            with st.expander("View Updated Profile"):
-                                st.write(f"**Introduction:** {updated_profile['introduction']}")
-                                st.write("**Interests:**")
-                                for interest in updated_profile['interests']:
-                                    st.write(f"- {interest}")
-                                st.write(f"**Communication Style:** {updated_profile['communication_style']}")
-                                
-                        except Exception as e:
-                            st.error(f"Error updating profile: {str(e)}")
+                    except Exception as e:
+                        st.error(f"Error updating profile: {str(e)}")
 
 def show_chat_assistant():
     st.header("Chat Assistant")
