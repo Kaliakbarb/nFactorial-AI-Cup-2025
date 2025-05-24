@@ -1,5 +1,5 @@
 import os
-import whisper
+from faster_whisper import WhisperModel
 import tempfile
 from typing import Dict, Optional
 import json
@@ -47,11 +47,11 @@ def process_audio(audio_file_path: str, person_id: str) -> Dict:
         sf.write(temp_path, y, sr)
         
         # Load Whisper model
-        model = whisper.load_model("base")
+        model = WhisperModel("base", device="cpu", compute_type="int8")
         
         # Transcribe audio
-        result = model.transcribe(temp_path)
-        transcription = result["text"]
+        segments, info = model.transcribe(temp_path, language="ru")
+        transcription = " ".join([segment.text for segment in segments])
         
         # Analyze the transcription
         insights = analyze_audio_content(transcription)
