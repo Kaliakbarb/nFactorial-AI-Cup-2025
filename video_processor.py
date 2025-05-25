@@ -1,6 +1,9 @@
 import subprocess
 subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
+
 import os
+os.environ["USE_PYTORCH_AUDIO"] = "1"  # 👈 Force alternative backend
+
 from faster_whisper import WhisperModel
 import tempfile
 from typing import Dict, Optional
