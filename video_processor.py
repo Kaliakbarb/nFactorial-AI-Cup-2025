@@ -1,11 +1,13 @@
 import subprocess
-
-# Install dependencies at runtime to avoid Heroku slug issues and AV crash
-subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
-subprocess.run(["pip", "install", "torchaudio"], check=True)
-
 import os
-os.environ["USE_PYTORCH_AUDIO"] = "1"  # Avoid av dependency by using torchaudio
+
+try:
+    subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
+    subprocess.run(["pip", "install", "torchaudio"], check=True)
+    os.environ["USE_PYTORCH_AUDIO"] = "1"
+except Exception as e:
+    print(f"Runtime install failed: {e}")
+
 
 from faster_whisper import WhisperModel
 import tempfile
