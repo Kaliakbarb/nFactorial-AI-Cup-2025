@@ -1,23 +1,5 @@
 import os
-import subprocess
-
-# Always set env variable early
-os.environ["USE_PYTORCH_AUDIO"] = "1"
-
-# Do pip installs safely inside a function
-def setup_faster_whisper():
-    try:
-        subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
-        subprocess.run(["pip", "install", "torchaudio"], check=True)
-    except Exception as e:
-        print(f"Runtime install failed: {e}")
-
-setup_faster_whisper()  # Call at runtime, not during import
-
-# Now import AFTER installation is guaranteed to happen
 from faster_whisper import WhisperModel
-
-
 import tempfile
 from typing import Dict, Optional
 import json
@@ -29,6 +11,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import librosa
 import soundfile as sf
+
 
 
 # Load environment variables
