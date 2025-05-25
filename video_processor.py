@@ -1,15 +1,19 @@
 import subprocess
 import os
 
+# Set environment variable first — must be BEFORE import
+os.environ["USE_PYTORCH_AUDIO"] = "1"
+
+# Then install required packages
 try:
     subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
     subprocess.run(["pip", "install", "torchaudio"], check=True)
-    os.environ["USE_PYTORCH_AUDIO"] = "1"
 except Exception as e:
     print(f"Runtime install failed: {e}")
 
-
+# Import AFTER environment is set and installation is attempted
 from faster_whisper import WhisperModel
+
 import tempfile
 from typing import Dict, Optional
 import json
@@ -21,6 +25,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import librosa
 import soundfile as sf
+
 
 # Load environment variables
 load_dotenv()
