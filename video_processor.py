@@ -1,18 +1,22 @@
-import subprocess
 import os
+import subprocess
 
-# Set environment variable first — must be BEFORE import
+# Always set env variable early
 os.environ["USE_PYTORCH_AUDIO"] = "1"
 
-# Then install required packages
-try:
-    subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
-    subprocess.run(["pip", "install", "torchaudio"], check=True)
-except Exception as e:
-    print(f"Runtime install failed: {e}")
+# Do pip installs safely inside a function
+def setup_faster_whisper():
+    try:
+        subprocess.run(["pip", "install", "faster-whisper==0.10.0", "--no-deps"], check=True)
+        subprocess.run(["pip", "install", "torchaudio"], check=True)
+    except Exception as e:
+        print(f"Runtime install failed: {e}")
 
-# Import AFTER environment is set and installation is attempted
+setup_faster_whisper()  # Call at runtime, not during import
+
+# Now import AFTER installation is guaranteed to happen
 from faster_whisper import WhisperModel
+
 
 import tempfile
 from typing import Dict, Optional
